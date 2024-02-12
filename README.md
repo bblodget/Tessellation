@@ -37,5 +37,6 @@ Contributions to the Tessellation project are welcome. Please feel free to fork 
 
 This project is licensed under the BSD 3-Clause License, except where indicated otherwise in the source files. 
 For example, the OneLoneCoder (OLC) header files included in this project are licensed under the OLC-3 License. 
-Please see the [LICENSE.txt](LICESNE.txt) file for the BSD 3-Clause License and the respective header files for the OLC-3 License details.
+Please see the [LICENSE.txt](https://github.com/bblodget/Tessellation/blob/main/LICENSE.txt) file for the BSD 3-Clause License 
+and the respective header files for the OLC-3 License details.
 
