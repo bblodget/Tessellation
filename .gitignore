@@ -1,0 +1,8 @@
+bin
+
+# Ignore Visual Studio cache files
+.vs
+
+# Exclude user-specific project settings
+*.vcxproj.user
+
