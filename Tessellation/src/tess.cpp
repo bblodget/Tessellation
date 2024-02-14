@@ -154,7 +154,7 @@ public:
 			}
 		}
 
-		olc::vf2d vMouse = GetMousePos();
+		olc::vf2d vMouse = tv_.ScreenToWorld(GetMousePos());
 
 		// Place triangle on mouse click
 		if (GetMouse(0).bPressed) { // Left mouse button is index 0
