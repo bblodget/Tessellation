@@ -52,7 +52,7 @@ enum class ShapeType
 	Triangle,
 	Square,
 	Hexagon,
-	Dart
+	IsoQuad,
 };
 
 
@@ -97,8 +97,8 @@ public:
 			case ShapeType::Hexagon:
 				CreateNewHexagon(olc::vf2d(0.0f, 0.0f)); // Initial position will be updated immediately
 				break;
-			case ShapeType::Dart:
-				CreateNewDart(olc::vf2d(0.0f, 0.0f)); // Initial position will be updated immediately
+			case ShapeType::IsoQuad:
+				CreateNewIsoQuad(olc::vf2d(0.0f, 0.0f)); // Initial position will be updated immediately
 				break;
 		}
 		return true;
@@ -141,10 +141,10 @@ public:
 					CreateNewHexagon(upCurrentShape_->centroid());
 					break;
 				case ShapeType::Hexagon:
-					currentShapeType_ = ShapeType::Dart;
-					CreateNewDart(upCurrentShape_->centroid());
+					currentShapeType_ = ShapeType::IsoQuad;
+					CreateNewIsoQuad(upCurrentShape_->centroid());
 					break;
-				case ShapeType::Dart:
+				case ShapeType::IsoQuad:
 					currentShapeType_ = ShapeType::Triangle;
 					CreateNewTriangle(upCurrentShape_->centroid());
 					break;
@@ -181,8 +181,8 @@ public:
 				case ShapeType::Hexagon:
 					CreateNewHexagon(vMouse); 
 					break;
-				case ShapeType::Dart:
-					CreateNewDart(vMouse); 
+				case ShapeType::IsoQuad:
+					CreateNewIsoQuad(vMouse); 
 					break;
 			}
 		}
@@ -302,28 +302,67 @@ public:
 		upCurrentShape_ = std::make_unique<TessShape>(&tv_, points);
 	}
 
-	void CreateNewDart(const olc::vf2d& position, float sideLength = SIDE_LENGTH) {
-		std::vector<olc::vf2d> points;
+	//void CreateNewDart(const olc::vf2d& position, float sideLength = SIDE_LENGTH) {
+	//	std::vector<olc::vf2d> points;
 
-		// Assuming the dart is oriented vertically with one tip at 'position'
-		float height = (float)((std::sqrt(3) / 2) * sideLength); // Height of an equilateral triangle
+	//	// Assuming the dart is oriented vertically with one tip at 'position'
+	//	float height = (float)((std::sqrt(3) / 2) * sideLength); // Height of an equilateral triangle
 
-		// Calculate vertices based on the dart shape
-		olc::vf2d topTip = position; // Top tip of the dart
-		olc::vf2d rightVertex = { position.x + (sideLength / 2), position.y + height };
-		olc::vf2d bottomTip = { position.x, position.y + 2 * height };
-		olc::vf2d leftVertex = { position.x - (sideLength / 2), position.y + height };
+	//	// Calculate vertices based on the dart shape
+	//	olc::vf2d topTip = position; // Top tip of the dart
+	//	olc::vf2d rightVertex = { position.x + (sideLength / 2), position.y + height };
+	//	olc::vf2d bottomTip = { position.x, position.y + 2 * height };
+	//	olc::vf2d leftVertex = { position.x - (sideLength / 2), position.y + height };
 
-		// Assemble points in order
-		points.push_back(topTip);
-		points.push_back(rightVertex);
-		points.push_back(bottomTip);
-		points.push_back(leftVertex);
+	//	// Assemble points in order
+	//	points.push_back(topTip);
+	//	points.push_back(rightVertex);
+	//	points.push_back(bottomTip);
+	//	points.push_back(leftVertex);
 
-		// Create a new TessShape with these points
+	//	// Create a new TessShape with these points
+	//	upCurrentShape_ = std::make_unique<TessShape>(&tv_, points);
+	//}
+
+	//void CreateNewIsoTriangle(const olc::vf2d& position, float sideLength = SIDE_LENGTH) 
+	//{
+	//	// Calculate the base length using the Law of Sines
+	//	// sin(30) / baseLength = sin(75) / sideLength
+	//	float baseLength = sideLength * std::sin(M_PI * 30.0 / 180.0) / std::sin(M_PI * 75.0 / 180.0);
+
+	//	// Calculate the height of the triangle using the side length and the 75-degree angle
+	//	float height = sideLength * std::sin(M_PI * 75.0 / 180.0);
+
+	//	// Calculate vertices of the isosceles triangle
+	//	olc::vf2d p0 = position + olc::vf2d(0.0f, -height); // Top vertex
+	//	olc::vf2d p1 = position + olc::vf2d(-baseLength / 2.0f, 0.0f); // Bottom left vertex
+	//	olc::vf2d p2 = position + olc::vf2d(baseLength / 2.0f, 0.0f); // Bottom right vertex
+
+	//	// Create a vector of points and initialize the current shape
+	//	std::vector<olc::vf2d> points = { p0, p1, p2 };
+	//	upCurrentShape_ = std::make_unique<TessShape>(&tv_, points);
+	//}
+
+	void CreateNewIsoQuad(const olc::vf2d& position, float sideLength = SIDE_LENGTH) {
+		// Calculate the height of the IsoTriangle
+		float height = sideLength * std::sin(75.0f * M_PI / 180.0f);
+
+		// Calculate the base of the IsoTriangle
+		float base = 2.0f * (sideLength * std::cos(75.0f * M_PI / 180.0f));
+
+		// Calculate vertices of the quadrilateral
+		olc::vf2d p0 = position + olc::vf2d(-base / 2.0f, 0.0f); // Left base vertex
+		olc::vf2d p1 = position + olc::vf2d(0.0f, -height);      // Top vertex
+		olc::vf2d p2 = position + olc::vf2d(base / 2.0f, 0.0f);  // Right base vertex
+		olc::vf2d p3 = position + olc::vf2d(0.0f, height);       // Bottom vertex
+
+		// Create a vector of points and initialize the current shape
+		std::vector<olc::vf2d> points = { p0, p1, p2, p3 };
 		upCurrentShape_ = std::make_unique<TessShape>(&tv_, points);
 	}
+
 	
+
 	// A function that takes a pointer to the currentTriangle and a pointer to the closestTriangle
 	// and returns a SnapPair structure
 	std::vector<SnapPair> FindClosestSnapPoints(const TessShape* pCurrentShape, const TessShape* pClosestShape) {
