@@ -134,19 +134,19 @@ public:
 			{
 				case ShapeType::Triangle:
 					currentShapeType_ = ShapeType::Square;
-					CreateNewSquare(upCurrentShape_->centroid());
+					CreateNewSquare(upCurrentShape_->getCentroid());
 					break;
 				case ShapeType::Square:
 					currentShapeType_ = ShapeType::Hexagon;
-					CreateNewHexagon(upCurrentShape_->centroid());
+					CreateNewHexagon(upCurrentShape_->getCentroid());
 					break;
 				case ShapeType::Hexagon:
 					currentShapeType_ = ShapeType::IsoQuad;
-					CreateNewIsoQuad(upCurrentShape_->centroid());
+					CreateNewIsoQuad(upCurrentShape_->getCentroid());
 					break;
 				case ShapeType::IsoQuad:
 					currentShapeType_ = ShapeType::Triangle;
-					CreateNewTriangle(upCurrentShape_->centroid());
+					CreateNewTriangle(upCurrentShape_->getCentroid());
 					break;
 				default:
 					currentShapeType_ = ShapeType::Triangle;
@@ -164,7 +164,7 @@ public:
 			{
 				// Snap the current triangle in place
 				olc::vf2d translation = snapPair_.bestClosestPoint - snapPair_.bestCurrentPoint;
-				upCurrentShape_->moveTo(upCurrentShape_->centroid() + translation);
+				upCurrentShape_->moveTo(upCurrentShape_->getCentroid() + translation);
 			}
 
 			upShapes_.push_back(std::move(upCurrentShape_)); // Move current triangle to the list
@@ -218,7 +218,7 @@ public:
 		// Draw all placed triangles
 		for (const auto& shape : upShapes_) {
 			shape->draw(olc::WHITE);
-			olc::vf2d dist = vMouse - shape->centroid();
+			olc::vf2d dist = vMouse - shape->getCentroid();
 			if (dist.mag() < closestDist_.mag()) {
 				closestDist_ = dist;
 				pClosestShape_ = shape.get();
@@ -365,7 +365,7 @@ public:
 
 	// A function that takes a pointer to the currentTriangle and a pointer to the closestTriangle
 	// and returns a SnapPair structure
-	std::vector<SnapPair> FindClosestSnapPoints(const TessShape* pCurrentShape, const TessShape* pClosestShape) {
+	std::vector<SnapPair> FindClosestSnapPoints(TessShape* pCurrentShape, TessShape* pClosestShape) {
 		std::vector<SnapPair> snapPairs;
 
 		if (!pCurrentShape || !pClosestShape) {
