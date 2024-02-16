@@ -36,6 +36,8 @@
 constexpr float SNAP_DIST_MAX = 5.0f;
 constexpr float SIDE_LENGTH = 30.0f;
 
+constexpr float ROTATION_INTEFRVAL = 0.1f;  // Seconds betwen rotations
+
 // A structure that holds two snap points
 // the bestCurrentPoint and the bestClosestPoint
 // and the distance between them
@@ -74,6 +76,9 @@ private:
 	SnapPair snapPair_ = { {0.0f, 0.0f}, {0.0f, 0.0f}, 100000.0f };
 	ShapeType currentShapeType_ = ShapeType::Triangle;
 	olc::TransformedView tv_;
+	float timeSinceLastRotation_ = 0.0f;
+
+
 
 
 public:
@@ -115,6 +120,19 @@ public:
 		}
 		if (GetKey(olc::Key::A).bPressed) {
 			tv_.ZoomAtScreenPos(0.9f, { ScreenWidth() / 2, ScreenHeight() / 2 }); // Zoom out at screen center
+		}
+
+
+		timeSinceLastRotation_ += fElapsedTime;
+
+		// Rotate the shape with the '<' and '>' keys
+		if (GetKey(olc::Key::COMMA).bHeld && timeSinceLastRotation_ >= ROTATION_INTEFRVAL) {
+			upCurrentShape_->rotate(-15.0f);
+			timeSinceLastRotation_ = 0.0f; // Reset the timer
+		}
+		if (GetKey(olc::Key::PERIOD).bHeld && timeSinceLastRotation_ >= ROTATION_INTEFRVAL) {
+			upCurrentShape_->rotate(15.0f);
+			timeSinceLastRotation_ = 0.0f; // Reset the timer
 		}
 
 		// Panning
