@@ -63,8 +63,21 @@ public:
 	// Rotate the shape
 	void rotate(float angleDegrees) {
 		rotation_ += angleDegrees;
+		// Normalize rotation to be within -360 to +360 degrees
+		if (rotation_ > 360.0f) {
+			rotation_ -= 360.0f;
+		}
+		else if (rotation_ < -360.0f) {
+			rotation_ += 360.0f;
+		}
 		dirty_ = true;
 	}
+
+	// Get the current rotation angle in degrees
+	float getRotation() const {
+		return rotation_;
+	}
+
 
 	// Draw the shape
 	void draw(olc::Pixel p = olc::WHITE) {

@@ -79,8 +79,7 @@ private:
 	olc::TransformedView tv_;
 	float timeSinceLastRotation_ = 0.0f;
 	float timeSinceLastZoom_ = 0.0f;
-
-
+	float lastRotation_ = 0.0f;
 
 
 public:
@@ -173,12 +172,15 @@ public:
 					currentShapeType_ = ShapeType::Triangle;
 					break;
 			}
+
 		}
 
 		olc::vf2d vMouse = tv_.ScreenToWorld(GetMousePos());
 
 		// Place triangle on mouse click
 		if (GetMouse(0).bPressed) { // Left mouse button is index 0
+			// Store the rotation of the current shape
+			float lastRotation_ = upCurrentShape_->getRotation();
 
 			// Snap if close to another triangle
 			if (snapPair_.distance < SNAP_DIST_MAX)
@@ -206,6 +208,8 @@ public:
 					CreateNewIsoQuad(vMouse); 
 					break;
 			}
+			// Apply the last shap's rotation to the new shape
+			upCurrentShape_->rotate(lastRotation_);
 		}
 
 		// Undo last action (remove the last place shape) on right mouse click
