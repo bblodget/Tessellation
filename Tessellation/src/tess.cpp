@@ -36,7 +36,8 @@
 constexpr float SNAP_DIST_MAX = 5.0f;
 constexpr float SIDE_LENGTH = 30.0f;
 
-constexpr float ROTATION_INTEFRVAL = 0.1f;  // Seconds betwen rotations
+constexpr float ROTATION_INTERVAL = 0.1f;  // Seconds betwen rotations
+constexpr float ZOOM_INTERVAL = 0.2f;  // Seconds betwen rotations
 
 // A structure that holds two snap points
 // the bestCurrentPoint and the bestClosestPoint
@@ -77,6 +78,7 @@ private:
 	ShapeType currentShapeType_ = ShapeType::Triangle;
 	olc::TransformedView tv_;
 	float timeSinceLastRotation_ = 0.0f;
+	float timeSinceLastZoom_ = 0.0f;
 
 
 
@@ -115,22 +117,23 @@ public:
 		Clear(olc::GREY);
 
 		// Zooming in and out
-		if (GetKey(olc::Key::Q).bPressed) {
+		timeSinceLastZoom_ += fElapsedTime;
+		if (GetKey(olc::Key::Q).bHeld && timeSinceLastZoom_ >= ZOOM_INTERVAL) {
 			tv_.ZoomAtScreenPos(1.1f, { ScreenWidth() / 2, ScreenHeight() / 2 }); // Zoom in at screen center
+			timeSinceLastZoom_ = 0.0f; // Reset the timer
 		}
-		if (GetKey(olc::Key::A).bPressed) {
+		if (GetKey(olc::Key::A).bHeld && timeSinceLastZoom_ >= ZOOM_INTERVAL) {
 			tv_.ZoomAtScreenPos(0.9f, { ScreenWidth() / 2, ScreenHeight() / 2 }); // Zoom out at screen center
+			timeSinceLastZoom_ = 0.0f; // Reset the timer
 		}
-
-
-		timeSinceLastRotation_ += fElapsedTime;
 
 		// Rotate the shape with the '<' and '>' keys
-		if (GetKey(olc::Key::COMMA).bHeld && timeSinceLastRotation_ >= ROTATION_INTEFRVAL) {
+		timeSinceLastRotation_ += fElapsedTime;
+		if (GetKey(olc::Key::COMMA).bHeld && timeSinceLastRotation_ >= ROTATION_INTERVAL) {
 			upCurrentShape_->rotate(-15.0f);
 			timeSinceLastRotation_ = 0.0f; // Reset the timer
 		}
-		if (GetKey(olc::Key::PERIOD).bHeld && timeSinceLastRotation_ >= ROTATION_INTEFRVAL) {
+		if (GetKey(olc::Key::PERIOD).bHeld && timeSinceLastRotation_ >= ROTATION_INTERVAL) {
 			upCurrentShape_->rotate(15.0f);
 			timeSinceLastRotation_ = 0.0f; // Reset the timer
 		}
