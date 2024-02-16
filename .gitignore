@@ -6,3 +6,8 @@ bin
 # Exclude user-specific project settings
 *.vcxproj.user
 
+# Ignore enscripten outpus
+pge.html
+pge.js
+pge.wasm
+
