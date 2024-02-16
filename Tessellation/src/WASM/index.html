@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en-us">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <title>Emscripten-Generated Code</title>
+    <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        body {
+            font-family: arial;
+            margin: 0;
+            padding: 0;
+            background: #000;
+        }
+
+        .emscripten {
+            padding-right: 0;
+            margin-left: auto;
+            margin-right: auto;
+            display: block;
+        }
+
+        div.emscripten_border {
+            border: none;
+        }
+
+        canvas.emscripten {
+            border: 0px none;
+            background-color: black;
+        }
+
+        /* Add styles for the controls info section */
+        #controlsInfo {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 10; /* Ensure it's above the canvas */
+            font-size: 0.8em;
+            max-width: 400px; /* Set a max width for the control panel */
+            word-wrap: break-word; /* Ensure text wraps within the panel */
+        }
+
+        #controlsText b {
+            color: #FFD700; /* gold color */
+            font-weight: bold;
+        }
+
+        /* Add a simple toggle button */
+        /* #toggleControlsBtn { */
+        #controlsInfo button {
+            background-color: #444;
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.8em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    <!-- Controls info section -->
+    <div id="controlsInfo">
+        <button id="toggleControlsBtn" onclick="toggleControls()">Hide Controls</button>
+        <div id="controlsText">
+            <h2>Tessellation Controls</h2>
+            <p>
+                <ul>
+                    <li><b>Place Shape:</b> Left Mouse Click</li>
+                    <li><b>Rotate Shape:</b> Mouse Scroll Wheel or Keys: &lt; &gt;</li>
+                    <li><b>Change Shape:</b> Spacebar </li>
+                    <li><b>Undo Last Shape:</b> Right Mouse Click</li>
+                    <li><b>Zoom In:</b> Key Q</li>
+                    <li><b>Zoom Out:</b> Key A</li>
+                    <li><b>Scroll:</b> Arrow keys</li>
+                </ul>
+
+            </p>
+            <button id="fullscreenButton">Go Fullscreen</button>
+        </div>
+    </div>
+    <script type="text/javascript">
+        var isFullscreen = false;
+
+        function toggleFullscreen() {
+            var fsButton = document.getElementById('fullscreenButton');
+            if (!isFullscreen) {
+                // Try to go fullscreen
+                var element = document.body; // You can also use document.documentElement for the whole page or canvas for just the canvas element
+                if (element.requestFullscreen) {
+                    element.requestFullscreen();
+                } else if (element.mozRequestFullScreen) { /* Firefox */
+                    element.mozRequestFullScreen();
+                } else if (element.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                    element.webkitRequestFullscreen();
+                } else if (element.msRequestFullscreen) { /* IE/Edge */
+                    element.msRequestFullscreen();
+                }
+                fsButton.textContent = 'Exit Fullscreen';
+                isFullscreen = true;
+            } else {
+                // Exit fullscreen
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                } else if (document.mozCancelFullScreen) { /* Firefox */
+                    document.mozCancelFullScreen();
+                } else if (document.webkitExitFullscreen) { /* Chrome, Safari & Opera */
+                    document.webkitExitFullscreen();
+                } else if (document.msExitFullscreen) { /* IE/Edge */
+                    document.msExitFullscreen();
+                }
+                fsButton.textContent = 'Go Fullscreen';
+                isFullscreen = false;
+            }
+        }
+
+        document.getElementById('fullscreenButton').addEventListener('click', toggleFullscreen);
+    </script>
+
+    <script type='text/javascript'>
+        var Module = {
+            // ... existing Module configuration ...
+        };
+        function toggleControls() {
+            var controlsText = document.getElementById('controlsText');
+            var toggleBtn = document.getElementById('toggleControlsBtn');
+            if (controlsText.style.display === 'none') {
+                controlsText.style.display = 'block';
+                toggleBtn.textContent = 'Hide Controls';
+            } else {
+                controlsText.style.display = 'none';
+                toggleBtn.textContent = 'Show Controls';
+            }
+        }
+    </script>
+    <script async type="text/javascript" src="./pge.js"></script>
+    <canvas class="emscripten" id="canvas" oncontextmenu="event.preventDefault()" tabindex=-1></canvas>
+    <script type='text/javascript'>
+        var Module = {
+            preRun: [],
+            postRun: [],
+            canvas: (function () {
+                var canvas = document.getElementById('canvas');
+
+                // As a default initial behavior, pop up an alert when webgl context is lost. To make your
+                // application robust, you may want to override this behavior before shipping!
+                // See http://www.khronos.org/registry/webgl/specs/latest/1.0/#5.15.2
+                canvas.addEventListener("webglcontextlost", function (e) { alert('WebGL context lost. You will need to reload the page.'); e.preventDefault(); }, false);
+
+                return canvas;
+            })(),
+        };
+    </script>
+    <script async type="text/javascript" src="./pge.js"></script>
+    <script type="text/javascript">
+        Module.canvas.addEventListener("resize", (e) => {
+
+            var viewWidth = e.detail.width;
+            var viewHeight = e.detail.width / Module._olc_WindowAspectRatio;
+
+            if (viewHeight > e.detail.height) {
+                viewHeight = e.detail.height;
+                viewWidth = e.detail.height * Module._olc_WindowAspectRatio;
+            }
+
+            // update dom attributes
+            Module.canvas.setAttribute("width", viewWidth);
+            Module.canvas.setAttribute("height", viewHeight);
+
+            var top = (e.detail.height - viewHeight) / 2;
+            var left = (e.detail.width - viewWidth) / 2;
+
+            // update styles
+            Module.canvas.style.position = "fixed";
+            Module.canvas.style.top = top.toString() + "px";
+            Module.canvas.style.left = left.toString() + "px";
+            Module.canvas.style.width = "";
+            Module.canvas.style.height = "";
+
+            // trigger PGE update
+            Module._olc_PGE_UpdateWindowSize(viewWidth, viewHeight);
+
+            // ensure canvas has focus
+            Module.canvas.focus();
+            e.preventDefault();
+        });
+    </script>
+
+</body>
+</html>
+
+
