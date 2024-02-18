@@ -17,17 +17,13 @@ The Tessellation project is a visual and interactive application developed in C+
 
 ## Mouse and Keyboard Controls
 
-### Mouse Controls
-
-- **Left Click:** Place the current shape at the mouse cursor's location.
-- **Right Click:** Undo the last placed shape.
-- **Mouse Wheel:** Rotate the currently selected shape. Scrolling up rotates counter-clockwise, and scrolling down rotates clockwise.
-
-### Keyboard Controls
-
-- **Spacebar:** Cycle through the available shapes to place on the canvas.
-- **Q/A:** Zoom in and out of the canvas. 'Q' zooms in, and 'A' zooms out.
-- **Arrow Keys:** Pan the view in the direction of the arrow key pressed.
+- **Place Shape:** Left Mouse Click
+- **Rotate Shape:** Mouse Scroll Wheel or Keys: &lt; &gt;
+- **Change Shape:** Spacebar 
+- **Undo Last Shape:** Right Mouse Click
+- **Zoom In:** Key Q
+- **Zoom Out:** Key A
+- **Scroll:** Arrow keys
 
 ## Getting Started
 
