@@ -65,7 +65,7 @@ class Tess : public olc::PixelGameEngine
 public:
 	Tess()
 	{
-		sAppName = "Testing Geometry2D Utilities";
+		sAppName = "Tessellation Maker";
 	}
 
 private:
