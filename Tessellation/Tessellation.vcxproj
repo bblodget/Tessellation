@@ -158,6 +158,7 @@
   <ItemGroup>
     <None Include="..\NAMING_CONVENTIONS.md" />
     <None Include="..\README.md" />
+    <None Include="src\WASM\index.html" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="..\LICENSE.txt" />

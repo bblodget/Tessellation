@@ -34,7 +34,7 @@
 
 // Constants
 constexpr float SNAP_DIST_MAX = 5.0f;
-constexpr float SIDE_LENGTH = 30.0f;
+constexpr float SIDE_LENGTH = 50.0f;
 
 constexpr float ROTATION_INTERVAL = 0.1f;  // Seconds betwen rotations
 constexpr float ZOOM_INTERVAL = 0.2f;  // Seconds betwen rotations
@@ -62,7 +62,8 @@ enum class ShapeType
 enum class ToolType
 {
 	PlaceShape,
-	FillShape
+	FillShape,
+	HideTool
 };
 
 
@@ -265,8 +266,9 @@ public:
 			float minDistance = 100000.0f;
 			for (const auto& sp : snapPairs)
 			{
-				tv_.FillCircle(sp.bestClosestPoint, 2, olc::YELLOW);
-				tv_.FillCircle(sp.bestCurrentPoint, 2, olc::GREEN);
+				int radius = (int)(SIDE_LENGTH/ 10.0f);
+				tv_.FillCircle(sp.bestClosestPoint, radius, olc::YELLOW);
+				tv_.FillCircle(sp.bestCurrentPoint, radius, olc::GREEN);
 				if (sp.distance < minDistance)
 				{
 					minDistance = sp.distance;
@@ -364,16 +366,31 @@ public:
 		Clear(olc::GREY);
 
 		// Switch tools with the 'T' key
-		if (GetKey(olc::Key::T).bPressed) {
-			switch (currentTool_)
-			{
-				case ToolType::PlaceShape:
-					currentTool_ = ToolType::FillShape;
-					break;
-				case ToolType::FillShape:
-					currentTool_ = ToolType::PlaceShape;
-					break;
-			}
+		//if (GetKey(olc::Key::T).bPressed) {
+		//	switch (currentTool_)
+		//	{
+		//		case ToolType::PlaceShape:
+		//			currentTool_ = ToolType::FillShape;
+		//			break;
+		//		case ToolType::FillShape:
+		//			currentTool_ = ToolType::PlaceShape;
+		//			break;
+		//	}
+		//}
+
+		// Number Key 1 selects the PlaceShape tool
+		if (GetKey(olc::Key::K1).bPressed) {
+			currentTool_ = ToolType::PlaceShape;
+		}
+
+		// Number Key 2 selects the FillShape tool
+		if (GetKey(olc::Key::K2).bPressed) {
+			currentTool_ = ToolType::FillShape;
+		}
+
+		// Number key 3 hides the tool
+		if (GetKey(olc::Key::K3).bPressed) {
+			currentTool_ = ToolType::HideTool;
 		}
 
 		// Zooming in and out
@@ -581,7 +598,7 @@ public:
 int main()
 {
 	Tess demo;
-	if (demo.Construct(512, 480, 1, 1))
+	if (demo.Construct(1024, 960, 1, 1))
 	{
 		demo.Start();
 	}

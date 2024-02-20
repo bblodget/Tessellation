@@ -16,6 +16,9 @@
     <Filter Include="Docs">
       <UniqueIdentifier>{e1523663-0b61-4be9-b531-dad985d14f18}</UniqueIdentifier>
     </Filter>
+    <Filter Include="WASM">
+      <UniqueIdentifier>{1a1c86ed-fcc2-4dfb-846b-2fc851eaa986}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\olcPGEX_TransformedView.h">
@@ -42,6 +45,9 @@
     </None>
     <None Include="..\README.md">
       <Filter>Docs</Filter>
+    </None>
+    <None Include="src\WASM\index.html">
+      <Filter>WASM</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

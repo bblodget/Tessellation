@@ -17,13 +17,20 @@ The Tessellation project is a visual and interactive application developed in C+
 
 ## Mouse and Keyboard Controls
 
+- ** Tool Selection:** Number Keys, 1=Place Tool, 2=Fill Tool, 3=Hide Tools
+- **Zoom In:** Key Q
+- **Zoom Out:** Key A
+- **Scroll:** Arrow keys
+
+### Place Tool
 - **Place Shape:** Left Mouse Click
 - **Rotate Shape:** Mouse Scroll Wheel or Keys: &lt; &gt;
 - **Change Shape:** Spacebar 
 - **Undo Last Shape:** Right Mouse Click
-- **Zoom In:** Key Q
-- **Zoom Out:** Key A
-- **Scroll:** Arrow keys
+
+### Fill Tool
+- **Fill Shape:** Left Mouse Click
+- **Change Fill Color:** Mouse Scroll Wheel or Keys: &lt; &gt;
 
 ## Getting Started
 

@@ -84,7 +84,7 @@ public:
 
 
 	// Draw the shape
-	void draw(olc::Pixel p = olc::WHITE) {
+	void draw(olc::Pixel p = olc::WHITE, int thickness=3) {
 		if (dirty_) {
 			recalculateDrawPoints();
 			dirty_ = false;
@@ -99,8 +99,23 @@ public:
 		}
 
 		// Draw the outline of the shape
+		//for (size_t i = 0; i < drawPoints_.size(); ++i) {
+		//	tv_->DrawLine(drawPoints_[i], drawPoints_[(i + 1) % drawPoints_.size()], p);
+		//}
+
+		// Draw the outline of the shape with thicker lines
 		for (size_t i = 0; i < drawPoints_.size(); ++i) {
-			tv_->DrawLine(drawPoints_[i], drawPoints_[(i + 1) % drawPoints_.size()], p);
+			olc::vf2d p1 = drawPoints_[i];
+			olc::vf2d p2 = drawPoints_[(i + 1) % drawPoints_.size()];
+
+			// Calculate the normal vector to the line
+			olc::vf2d normal = (p2 - p1).perp().norm();
+
+			// Draw multiple lines with offsets to create a thicker line
+			for (int j = -thickness / 2; j <= thickness / 2; ++j) {
+				olc::vf2d offset = normal * static_cast<float>(j);
+				tv_->DrawLine(p1 + offset, p2 + offset, p);
+			}
 		}
 	}
 
