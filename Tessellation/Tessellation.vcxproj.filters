@@ -27,6 +27,9 @@
     <ClInclude Include="src\tess_shape.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\olcPGEX_Graphics2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\tess.cpp">

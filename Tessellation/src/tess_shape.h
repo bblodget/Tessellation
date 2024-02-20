@@ -29,6 +29,10 @@
 #define OLC_PGEX_TRANSFORMEDVIEW
 #include "olcPGEX_TransformedView.h"
 
+//#define OLC_PGEX_GRAPHICS2D
+//#include "olcPGEX_Graphics2D.h"
+
+
 #include <vector>
 #include <numeric> // For std::accumulate
 #include <cmath>   // For std::round, std::pow
@@ -36,7 +40,7 @@
 class TessShape {
 public:
 	TessShape(olc::TransformedView* tv, const std::vector<olc::vf2d>& points)
-		: tv_(tv), originalPoints_(points), drawPoints_(points), translation_(0.0f, 0.0f), rotation_(0.0f), dirty_(true) 
+		: tv_(tv), originalPoints_(points), drawPoints_(points), translation_(0.0f, 0.0f), rotation_(0.0f), dirty_(true) , color_(olc::BLANK), fill_(false)
 	{
 		originalCentroid_ = computeCentroid(originalPoints_);
 		drawCentroid_ = computeCentroid(originalPoints_);
@@ -86,10 +90,17 @@ public:
 			dirty_ = false;
 		}
 
+		// Fill the shape with fill color
+		if (fill_)
+		{
+			for (size_t i = 0; i < drawPoints_.size() - 1; ++i) {
+				drawFilledTriangle(drawPoints_[0], drawPoints_[i], drawPoints_[i + 1], color_);
+			}
+		}
+
+		// Draw the outline of the shape
 		for (size_t i = 0; i < drawPoints_.size(); ++i) {
-			tv_->DrawLine(static_cast<olc::vi2d>(drawPoints_[i]),
-				static_cast<olc::vi2d>(drawPoints_[(i + 1) % drawPoints_.size()]),
-				p);
+			tv_->DrawLine(drawPoints_[i], drawPoints_[(i + 1) % drawPoints_.size()], p);
 		}
 	}
 
@@ -108,6 +119,32 @@ public:
 		return snapPoints;
 	}
 
+	void setColor(const olc::Pixel& newColor) {
+		color_ = newColor;
+		if (color_ == olc::BLANK) {
+			fill_ = false;
+		}
+		else {
+			fill_ = true;
+		}
+	}
+
+	// Check if a point is inside the shape
+	// This requires the shape vertices to be in ccw or cw order
+	bool isInside(const olc::vf2d& point) const {
+		int intersections = 0;
+		for (size_t i = 0; i < drawPoints_.size(); ++i) {
+			size_t j = (i + 1) % drawPoints_.size();
+			// Check if the line segment from drawPoints_[i] to drawPoints_[j] intersects with the ray from the point to the right
+			if (((drawPoints_[i].y > point.y) != (drawPoints_[j].y > point.y)) &&
+				(point.x < (drawPoints_[j].x - drawPoints_[i].x) * (point.y - drawPoints_[i].y) / (drawPoints_[j].y - drawPoints_[i].y) + drawPoints_[i].x)) {
+				intersections++;
+			}
+		}
+		return (intersections % 2) == 1;
+	}
+
+
 protected:
 	olc::TransformedView* tv_;
 	std::vector<olc::vf2d> originalPoints_; // Original vertices of the shape
@@ -118,6 +155,8 @@ protected:
 	olc::vf2d translation_;                 // Translation vector
 	float rotation_;                        // Rotation in degrees
 	bool dirty_;                            // Flag to recalculate draw points
+	olc::Pixel color_;                      // Color of the shape
+	bool fill_ = false;                     // Fill the shape with color
 
 	// Compute the centroid of the original polygon
 	olc::vf2d computeCentroid(const std::vector<olc::vf2d>& points) const {
@@ -172,6 +211,12 @@ protected:
 		float multiplier = (float)std::pow(10.0f, decimalPlaces);
 		return olc::vf2d(std::round(point.x * multiplier) / multiplier, std::round(point.y * multiplier) / multiplier);
 	}
+
+	void drawFilledTriangle(const olc::vf2d& p1, const olc::vf2d& p2, const olc::vf2d& p3, olc::Pixel color) 
+	{
+		tv_->FillTriangle(p1, p2, p3, color);
+	}
+
 };
 
 

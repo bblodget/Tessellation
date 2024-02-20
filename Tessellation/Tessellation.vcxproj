@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="src\olcPGEX_Graphics2D.h" />
     <ClInclude Include="src\olcPGEX_TransformedView.h" />
     <ClInclude Include="src\olcPixelGameEngine.h" />
     <ClInclude Include="src\tess_shape.h" />

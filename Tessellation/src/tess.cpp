@@ -58,6 +58,12 @@ enum class ShapeType
 	IsoQuad,
 };
 
+// An enum for all the various tools
+enum class ToolType
+{
+	PlaceShape,
+	FillShape
+};
 
 
 class Tess : public olc::PixelGameEngine
@@ -80,12 +86,20 @@ private:
 	float timeSinceLastRotation_ = 0.0f;
 	float timeSinceLastZoom_ = 0.0f;
 	float lastRotation_ = 0.0f;
+	ToolType currentTool_ = ToolType::PlaceShape;
+	std::vector<olc::Pixel> colors_ = { olc::RED, olc::GREEN, olc::BLUE, olc::YELLOW, olc::CYAN, olc::MAGENTA, olc::WHITE, olc::BLACK };
+	int currentColorIndex_ = 0;
+
 
 
 public:
 
 	bool OnUserCreate() override
 	{
+		// Turn on alpha blending
+		// SetPixelMode(olc::Pixel::ALPHA);
+		SetPixelMode(olc::Pixel::NORMAL);
+
 		// Initialize TransformedView settings
 		tv_.Initialise({ScreenWidth(), ScreenHeight()});
 		tv_.SetWorldScale({ 1.0f, 1.0f }); // Set initial zoom level
@@ -110,22 +124,13 @@ public:
 		return true;
 	}
 
-
-	bool OnUserUpdate(float fElapsedTime) override
+	// Do pre-draw updates for the PlaceShape tool
+	bool ToolPlaceShapeUpdatePre(float fElapsedTime, olc::vf2d vMouse)
 	{
-		Clear(olc::GREY);
-
-		// Zooming in and out
-		timeSinceLastZoom_ += fElapsedTime;
-		if (GetKey(olc::Key::Q).bHeld && timeSinceLastZoom_ >= ZOOM_INTERVAL) {
-			tv_.ZoomAtScreenPos(1.1f, { ScreenWidth() / 2, ScreenHeight() / 2 }); // Zoom in at screen center
-			timeSinceLastZoom_ = 0.0f; // Reset the timer
-		}
-		if (GetKey(olc::Key::A).bHeld && timeSinceLastZoom_ >= ZOOM_INTERVAL) {
-			tv_.ZoomAtScreenPos(0.9f, { ScreenWidth() / 2, ScreenHeight() / 2 }); // Zoom out at screen center
-			timeSinceLastZoom_ = 0.0f; // Reset the timer
-		}
-
+		// ***************************
+		// Handle Keyboard Input
+		// ***************************
+		
 		// Rotate the shape with the '<' and '>' keys
 		timeSinceLastRotation_ += fElapsedTime;
 		if (GetKey(olc::Key::COMMA).bHeld && timeSinceLastRotation_ >= ROTATION_INTERVAL) {
@@ -136,17 +141,6 @@ public:
 			upCurrentShape_->rotate(15.0f);
 			timeSinceLastRotation_ = 0.0f; // Reset the timer
 		}
-
-		// Panning
-		olc::vf2d panDelta = { 0.0f, 0.0f };
-		float panSpeed = 100.0f * fElapsedTime; // Adjust pan speed as necessary
-		if (GetKey(olc::Key::LEFT).bHeld) panDelta.x += panSpeed;
-		if (GetKey(olc::Key::RIGHT).bHeld) panDelta.x -= panSpeed;
-		if (GetKey(olc::Key::UP).bHeld) panDelta.y += panSpeed;
-		if (GetKey(olc::Key::DOWN).bHeld) panDelta.y -= panSpeed;
-
-		tv_.MoveWorldOffset(panDelta);
-
 
 		// Rotate through shapes on 'SPACE' key press
 		if (GetKey(olc::Key::SPACE).bPressed) {
@@ -175,9 +169,46 @@ public:
 
 		}
 
-		olc::vf2d vMouse = tv_.ScreenToWorld(GetMousePos());
+		// ***************************
+		// Handle Mouse Input, Rotation and Undo
+		// ***************************
 
-		// Place triangle on mouse click
+		// Rotate current triangle with scroll wheel
+		int nMouseWheelDelta = GetMouseWheel();
+		if (nMouseWheelDelta > 0) {
+			// Rotate counter-clockwise
+			upCurrentShape_->rotate(-15.0f);
+		}
+		else if (nMouseWheelDelta < 0) {
+			// Rotate clockwise
+			upCurrentShape_->rotate(15.0f);
+		}
+
+		// Undo last action (remove the last place shape) on right mouse click
+		if (GetMouse(1).bPressed) { // Right mouse button is index 1
+			if (!upShapes_.empty()) {
+				upShapes_.pop_back();
+			}
+		}
+
+		// Update current triangle position to follow mouse
+		if (upCurrentShape_) {
+			// More the triangle to the mouse position
+			upCurrentShape_->moveTo(vMouse);
+		}
+
+		return true;
+	}
+
+	// Do post- tess draw updates for the PlaceShape tool
+	bool ToolPlaceShapeUpdatePost(float fElapsedTime, olc::vf2d vMouse)
+	{
+		// ***************************
+		// Handle Mouse Input - Place shape
+		// ***************************
+
+		// Place shape on mouse click
+
 		if (GetMouse(0).bPressed) { // Left mouse button is index 0
 			// Store the rotation of the current shape
 			float lastRotation_ = upCurrentShape_->getRotation();
@@ -208,48 +239,15 @@ public:
 					CreateNewIsoQuad(vMouse); 
 					break;
 			}
-			// Apply the last shap's rotation to the new shape
+
+			// Apply the last shape's rotation to the new shape
 			upCurrentShape_->rotate(lastRotation_);
 		}
 
-		// Undo last action (remove the last place shape) on right mouse click
-		if (GetMouse(1).bPressed) { // Right mouse button is index 1
-			if (!upShapes_.empty()) {
-				upShapes_.pop_back();
-			}
-		}
-
-		// Update current triangle position to follow mouse
-		if (upCurrentShape_) {
-			// More the triangle to the mouse position
-			upCurrentShape_->moveTo(vMouse);
-		}
-
-		// Rotate current triangle with scroll wheel
-		int nMouseWheelDelta = GetMouseWheel();
-		if (nMouseWheelDelta > 0) {
-			// Rotate counter-clockwise
-			upCurrentShape_->rotate(-15.0f);
-		}
-		else if (nMouseWheelDelta < 0) {
-			// Rotate clockwise
-			upCurrentShape_->rotate(15.0f);
-		}
-
-		closestDist_ = { 100000.0f, 100000.0f }; // Initialize with a large value
-
-
-
-		// Draw all placed triangles
-		for (const auto& shape : upShapes_) {
-			shape->draw(olc::WHITE);
-			olc::vf2d dist = vMouse - shape->getCentroid();
-			if (dist.mag() < closestDist_.mag()) {
-				closestDist_ = dist;
-				pClosestShape_ = shape.get();
-			}
-		}
-
+		// ***************************
+		// Draw the shape
+		// ***************************
+	
 		// Draw the closest triangle in a different red
 		// XXX if (pClosestShape_ && closestDist_.mag() < SNAP_DIST_MAX) {
 		// XXX	pClosestShape_->draw(olc::RED);
@@ -279,6 +277,159 @@ public:
 		}
 
 		return true;
+
+	}
+
+	// Do pre-draw updates for the FillShape tool
+	bool ToolFillUpdatePre(float fElapsedTime, olc::vf2d vMouse)
+	{
+		// ***************************
+		// Handle Keyboard Input
+		// ***************************
+		
+		// Change fill color with the '<' and '>' keys
+		timeSinceLastRotation_ += fElapsedTime;
+		if (GetKey(olc::Key::COMMA).bHeld && timeSinceLastRotation_ >= ROTATION_INTERVAL) {
+			currentColorIndex_ = (currentColorIndex_ - 1 + colors_.size()) % colors_.size();
+			timeSinceLastRotation_ = 0.0f; // Reset the timer
+		}
+		if (GetKey(olc::Key::PERIOD).bHeld && timeSinceLastRotation_ >= ROTATION_INTERVAL) {
+			currentColorIndex_ = (currentColorIndex_ + 1) % colors_.size();
+			timeSinceLastRotation_ = 0.0f; // Reset the timer
+		}
+
+		// ***************************
+		// Handle Mouse Input - Change color
+		// ***************************
+
+		// Rotate current triangle with scroll wheel
+		int nMouseWheelDelta = GetMouseWheel();
+		if (nMouseWheelDelta > 0) {
+			// Rotate counter-clockwise
+			currentColorIndex_ = (currentColorIndex_ - 1 + colors_.size()) % colors_.size();
+		}
+		else if (nMouseWheelDelta < 0) {
+			// Rotate clockwise
+			currentColorIndex_ = (currentColorIndex_ + 1) % colors_.size();
+		}
+
+		return true;
+	}
+
+	// Do post tess draw updates for the FillShape tool
+	bool ToolFillUpdatePost(float fElapsedTime, olc::vf2d vMouse)
+	{
+
+		// FillRect at current mouse position
+		float sideLength = SIDE_LENGTH/4.0f;
+		float halfSide = sideLength / 2.0f;
+
+		tv_.FillRect(vMouse.x-halfSide, vMouse.y-halfSide, sideLength, sideLength, colors_[currentColorIndex_]);
+
+		// ***************************
+		// Mouse Input - Fill shape
+		// ***************************
+		if (GetMouse(0).bPressed)
+		{ 
+			// Check the closestShape to see if the vMouse is inside it
+			if (pClosestShape_ && pClosestShape_->isInside(vMouse))
+			{
+				pClosestShape_->setColor(colors_[currentColorIndex_]);
+			}
+		}
+
+
+
+
+		return true;
+
+	}
+
+
+	bool OnUserUpdate(float fElapsedTime) override
+	{
+		bool ret = true;
+
+		Clear(olc::GREY);
+
+		// Switch tools with the 'T' key
+		if (GetKey(olc::Key::T).bPressed) {
+			switch (currentTool_)
+			{
+				case ToolType::PlaceShape:
+					currentTool_ = ToolType::FillShape;
+					break;
+				case ToolType::FillShape:
+					currentTool_ = ToolType::PlaceShape;
+					break;
+			}
+		}
+
+		// Zooming in and out
+		timeSinceLastZoom_ += fElapsedTime;
+		if (GetKey(olc::Key::Q).bHeld && timeSinceLastZoom_ >= ZOOM_INTERVAL) {
+			tv_.ZoomAtScreenPos(1.1f, { ScreenWidth() / 2, ScreenHeight() / 2 }); // Zoom in at screen center
+			timeSinceLastZoom_ = 0.0f; // Reset the timer
+		}
+		if (GetKey(olc::Key::A).bHeld && timeSinceLastZoom_ >= ZOOM_INTERVAL) {
+			tv_.ZoomAtScreenPos(0.9f, { ScreenWidth() / 2, ScreenHeight() / 2 }); // Zoom out at screen center
+			timeSinceLastZoom_ = 0.0f; // Reset the timer
+		}
+
+		// Panning
+		olc::vf2d panDelta = { 0.0f, 0.0f };
+		float panSpeed = 100.0f * fElapsedTime; // Adjust pan speed as necessary
+		if (GetKey(olc::Key::LEFT).bHeld) panDelta.x += panSpeed;
+		if (GetKey(olc::Key::RIGHT).bHeld) panDelta.x -= panSpeed;
+		if (GetKey(olc::Key::UP).bHeld) panDelta.y += panSpeed;
+		if (GetKey(olc::Key::DOWN).bHeld) panDelta.y -= panSpeed;
+
+		tv_.MoveWorldOffset(panDelta);
+
+		olc::vf2d vMouse = tv_.ScreenToWorld(GetMousePos());
+
+		// Handle tool-specific updates, before drawing the shapes
+		switch (currentTool_)
+		{
+		case ToolType::PlaceShape:
+				ret &= ToolPlaceShapeUpdatePre(fElapsedTime, vMouse);
+				break;
+		case ToolType::FillShape:
+				ret &= ToolFillUpdatePre(fElapsedTime, vMouse);
+				break;
+		}
+
+
+		// ***************************
+		// Draw the shapes
+		// ***************************
+
+		closestDist_ = { 100000.0f, 100000.0f }; // Initialize with a large value
+
+		// Draw all placed shapes. Also find the closest shape to the mouse
+		for (const auto& shape : upShapes_) {
+			shape->draw(olc::WHITE);
+			olc::vf2d dist = vMouse - shape->getCentroid();
+			if (dist.mag() < closestDist_.mag()) {
+				closestDist_ = dist;
+				pClosestShape_ = shape.get();
+			}
+		}
+
+		// Handle tool-specific updates, after drawing the shapes
+		switch (currentTool_)
+		{
+		case ToolType::PlaceShape:
+				ret &= ToolPlaceShapeUpdatePost(fElapsedTime, vMouse);
+				break;
+		case ToolType::FillShape:
+				ret &= ToolFillUpdatePost(fElapsedTime, vMouse);
+				break;
+		}
+
+
+
+		return ret;
 
 	}
 
@@ -419,7 +570,7 @@ public:
 int main()
 {
 	Tess demo;
-	if (demo.Construct(512, 480, 2, 2))
+	if (demo.Construct(512, 480, 1, 1))
 	{
 		demo.Start();
 	}
