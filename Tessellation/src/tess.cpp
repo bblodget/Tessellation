@@ -320,11 +320,15 @@ public:
 	bool ToolFillUpdatePost(float fElapsedTime, olc::vf2d vMouse)
 	{
 
-		// FillRect at current mouse position
-		float sideLength = SIDE_LENGTH/4.0f;
-		float halfSide = sideLength / 2.0f;
+		// Check the closestShape to see if the vMouse is inside it
+		// If it is, highlight the shape
+		bool isInside = pClosestShape_ && pClosestShape_->isInside(vMouse);
 
-		tv_.FillRect(vMouse.x-halfSide, vMouse.y-halfSide, sideLength, sideLength, colors_[currentColorIndex_]);
+		if (isInside)
+		{
+			pClosestShape_->draw(colors_[currentColorIndex_]);
+		}
+
 
 		// ***************************
 		// Mouse Input - Fill shape
@@ -332,11 +336,18 @@ public:
 		if (GetMouse(0).bPressed)
 		{ 
 			// Check the closestShape to see if the vMouse is inside it
-			if (pClosestShape_ && pClosestShape_->isInside(vMouse))
+			if (isInside)
 			{
 				pClosestShape_->setColor(colors_[currentColorIndex_]);
 			}
 		}
+
+		// ***************************
+		// Draw the fill tool - a small square
+		// ***************************
+		float sideLength = SIDE_LENGTH/4.0f;
+		float halfSide = sideLength / 2.0f;
+		tv_.FillRect(vMouse.x-halfSide, vMouse.y-halfSide, sideLength, sideLength, colors_[currentColorIndex_]);
 
 
 
