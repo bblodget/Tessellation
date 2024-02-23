@@ -34,7 +34,7 @@
 
 // Constants
 constexpr float SNAP_DIST_MAX = 5.0f;
-constexpr float SIDE_LENGTH = 50.0f;
+constexpr float SIDE_LENGTH = 40.0f;
 
 constexpr float ROTATION_INTERVAL = 0.1f;  // Seconds betwen rotations
 constexpr float ZOOM_INTERVAL = 0.2f;  // Seconds betwen rotations
@@ -397,10 +397,12 @@ public:
 		timeSinceLastZoom_ += fElapsedTime;
 		if (GetKey(olc::Key::Q).bHeld && timeSinceLastZoom_ >= ZOOM_INTERVAL) {
 			tv_.ZoomAtScreenPos(1.1f, { ScreenWidth() / 2, ScreenHeight() / 2 }); // Zoom in at screen center
+			//std::cout << "Q: Zoom Level: " << tv_.GetWorldScale().x << std::endl;
 			timeSinceLastZoom_ = 0.0f; // Reset the timer
 		}
 		if (GetKey(olc::Key::A).bHeld && timeSinceLastZoom_ >= ZOOM_INTERVAL) {
 			tv_.ZoomAtScreenPos(0.9f, { ScreenWidth() / 2, ScreenHeight() / 2 }); // Zoom out at screen center
+			//std::cout << "A: Zoom Level: " << tv_.GetWorldScale().x << std::endl;
 			timeSinceLastZoom_ = 0.0f; // Reset the timer
 		}
 
@@ -598,7 +600,9 @@ public:
 int main()
 {
 	Tess demo;
-	if (demo.Construct(1024, 960, 1, 1))
+	// if (demo.Construct(1024, 960, 1, 1))
+	if (demo.Construct(512, 480, 2, 2))
+	// if (demo.Construct(256, 240, 4, 4))
 	{
 		demo.Start();
 	}
